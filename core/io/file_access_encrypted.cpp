@@ -33,12 +33,12 @@
 #include "os/copymem.h"
 #include "print_string.h"
 
-#include "thirdparty/misc/aes256.h"
+#include "thirdparty/misc/des56.h"
 #include "thirdparty/misc/md5.h"
 
 #include <stdio.h>
 
-#define COMP_MAGIC 0x43454447
+#define COMP_MAGIC 0x43454448
 
 Error FileAccessEncrypted::open_and_parse(FileAccess *p_base, const Vector<uint8_t> &p_key, Mode p_mode) {
 
@@ -49,7 +49,7 @@ Error FileAccessEncrypted::open_and_parse(FileAccess *p_base, const Vector<uint8
 	pos = 0;
 	eofed = false;
 
-	if (p_mode == MODE_WRITE_AES256) {
+	if (p_mode == MODE_WRITE_DES56) {
 
 		data.clear();
 		writing = true;
@@ -81,15 +81,10 @@ Error FileAccessEncrypted::open_and_parse(FileAccess *p_base, const Vector<uint8
 		int blen = p_base->get_buffer(data.ptr(), ds);
 		ERR_FAIL_COND_V(blen != ds, ERR_FILE_CORRUPT);
 
-		aes256_context ctx;
-		aes256_init(&ctx, key.ptr());
-
-		for (size_t i = 0; i < ds; i += 16) {
-
-			aes256_decrypt_ecb(&ctx, &data[i]);
-		}
-
-		aes256_done(&ctx);
+		des_context ctx;
+		des_setup(&ctx, key.ptr());
+		for (size_t i = 0; i < ds; i += 8)
+			des_process(&ctx, false, &data[i], &data[i]);
 
 		data.resize(length);
 
@@ -148,15 +143,10 @@ void FileAccessEncrypted::close() {
 			compressed[i] = data[i];
 		}
 
-		aes256_context ctx;
-		aes256_init(&ctx, key.ptr());
-
-		for (size_t i = 0; i < len; i += 16) {
-
-			aes256_encrypt_ecb(&ctx, &compressed[i]);
-		}
-
-		aes256_done(&ctx);
+		des_context ctx;
+		des_setup(&ctx, key.ptr());
+		for (size_t i = 0; i < len; i += 8)
+			des_process(&ctx, true, &compressed[i], &compressed[i]);
 
 		file->store_32(COMP_MAGIC);
 		file->store_32(mode);

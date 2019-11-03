@@ -63,7 +63,7 @@ thirdparty_sources = [
 	"smaz.c",
 
 	# C++ sources
-	"aes256.cpp",
+	"des56.cpp",
 	"hq2x.cpp",
 	"md5.cpp",
 	"triangulator.cpp",

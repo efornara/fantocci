@@ -6,8 +6,7 @@
  * This software is released under the MIT license.
  */
 
-#include "lib.h"
-#include "ntlm-des.h"
+#include "des56.h"
 
 /*
  * Description of DES
@@ -279,10 +278,6 @@
  * The final permutation is just the inverse of IP, so it can be
  * performed by a similar set of operations.
  */
-
-struct des_context {
-	uint32_t k0246[16], k1357[16];
-};
 
 #define rotl(x, c) ( (x << c) | (x >> (32-c)) )
 #define rotl28(x, c) ( ( (x << c) | (x >> (28-c)) ) & 0x0FFFFFFF)
@@ -576,29 +571,85 @@ des_encipher(uint32_t *output, uint32_t L, uint32_t R,
 	(cp)[1] = (value) >> 16; \
 	(cp)[0] = (value) >> 24; } while (0)
 
-static inline void
-des_cbc_encrypt(unsigned char *dest, const unsigned char *src,
-		struct des_context *sched)
-{
-	uint32_t out[2], L, R;
+// des56.cpp - decipher, setup and scramble
+/*
+ * Fantocci
+ * Copyright (c) 2019  Emanuele Fornara
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining
+ * a copy of this software and associated documentation files (the
+ * "Software"), to deal in the Software without restriction, including
+ * without limitation the rights to use, copy, modify, merge, publish,
+ * distribute, sublicense, and/or sell copies of the Software, and to
+ * permit persons to whom the Software is furnished to do so, subject to
+ * the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be
+ * included in all copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+ * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
+ * IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
+ * CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
+ * TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
+ * SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+ */
 
-	L = GET_32BIT_MSB_FIRST(src);
-	R = GET_32BIT_MSB_FIRST(src + 4);
-	des_encipher(out, L, R, sched);
-	PUT_32BIT_MSB_FIRST(dest, out[0]);
-	PUT_32BIT_MSB_FIRST(dest + 4, out[1]);
+static void
+des_decipher(uint32_t *output, uint32_t L, uint32_t R,
+	     struct des_context *sched)
+{
+	uint32_t swap, s0246, s1357;
+
+	IP(L, R);
+
+	L = rotl(L, 1);
+	R = rotl(R, 1);
+
+	L ^= f(R, sched->k0246[15], sched->k1357[15]);
+	R ^= f(L, sched->k0246[14], sched->k1357[14]);
+	L ^= f(R, sched->k0246[13], sched->k1357[13]);
+	R ^= f(L, sched->k0246[12], sched->k1357[12]);
+	L ^= f(R, sched->k0246[11], sched->k1357[11]);
+	R ^= f(L, sched->k0246[10], sched->k1357[10]);
+	L ^= f(R, sched->k0246[9], sched->k1357[9]);
+	R ^= f(L, sched->k0246[8], sched->k1357[8]);
+	L ^= f(R, sched->k0246[7], sched->k1357[7]);
+	R ^= f(L, sched->k0246[6], sched->k1357[6]);
+	L ^= f(R, sched->k0246[5], sched->k1357[5]);
+	R ^= f(L, sched->k0246[4], sched->k1357[4]);
+	L ^= f(R, sched->k0246[3], sched->k1357[3]);
+	R ^= f(L, sched->k0246[2], sched->k1357[2]);
+	L ^= f(R, sched->k0246[1], sched->k1357[1]);
+	R ^= f(L, sched->k0246[0], sched->k1357[0]);
+
+	L = rotl(L, 31);
+	R = rotl(R, 31);
+
+	swap = L;
+	L = R;
+	R = swap;
+
+	FP(L, R);
+
+	output[0] = L;
+	output[1] = R;
 }
 
-unsigned char *
-deshash(unsigned char *dst, const unsigned char *key,
-	const unsigned char *src)
-{
-	struct des_context ctx;
-
+void des_setup(des_context *ctx, const uint8_t *key) {
 	des_key_setup(GET_32BIT_MSB_FIRST(key) >> 8,
-		      GET_32BIT_MSB_FIRST(key + 3), &ctx);
+	  GET_32BIT_MSB_FIRST(key + 4), ctx);
+}
 
-	des_cbc_encrypt(dst, src, &ctx);
-
-	return dst;
+void des_process(des_context *ctx, bool scramble, const uint8_t *src, uint8_t *dest) {
+	uint32_t out[2], L, R;
+	L = GET_32BIT_MSB_FIRST(src);
+	R = GET_32BIT_MSB_FIRST(src + 4);
+	if (scramble)
+		des_encipher(out, L, R, ctx);
+	else
+		des_decipher(out, L, R, ctx);
+	PUT_32BIT_MSB_FIRST(dest, out[0]);
+	PUT_32BIT_MSB_FIRST(dest + 4, out[1]);
 }

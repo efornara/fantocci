@@ -1445,7 +1445,7 @@ Error _File::open_encrypted(const String &p_path, int p_mode_flags, const Vector
 		return err;
 
 	FileAccessEncrypted *fae = memnew(FileAccessEncrypted);
-	err = fae->open_and_parse(f, p_key, (p_mode_flags == WRITE) ? FileAccessEncrypted::MODE_WRITE_AES256 : FileAccessEncrypted::MODE_READ);
+	err = fae->open_and_parse(f, p_key, (p_mode_flags == WRITE) ? FileAccessEncrypted::MODE_WRITE_DES56 : FileAccessEncrypted::MODE_READ);
 	if (err) {
 		memdelete(fae);
 		close();
@@ -1462,7 +1462,7 @@ Error _File::open_encrypted_pass(const String &p_path, int p_mode_flags, const S
 		return err;
 
 	FileAccessEncrypted *fae = memnew(FileAccessEncrypted);
-	err = fae->open_and_parse_password(f, p_pass, (p_mode_flags == WRITE) ? FileAccessEncrypted::MODE_WRITE_AES256 : FileAccessEncrypted::MODE_READ);
+	err = fae->open_and_parse_password(f, p_pass, (p_mode_flags == WRITE) ? FileAccessEncrypted::MODE_WRITE_DES56 : FileAccessEncrypted::MODE_READ);
 	if (err) {
 		memdelete(fae);
 		close();

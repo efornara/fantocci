@@ -94,7 +94,7 @@ public:
 							key[i] = v;
 						}
 						FileAccessEncrypted *fae = memnew(FileAccessEncrypted);
-						Error err = fae->open_and_parse(fa, key, FileAccessEncrypted::MODE_WRITE_AES256);
+						Error err = fae->open_and_parse(fa, key, FileAccessEncrypted::MODE_WRITE_DES56);
 						if (err == OK) {
 
 							fae->store_buffer(file.ptr(), file.size());

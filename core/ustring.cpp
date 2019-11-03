@@ -35,7 +35,7 @@
 #include "ucaps.h"
 #include "variant.h"
 
-#include "thirdparty/misc/aes256.h"
+#include "thirdparty/misc/des56.h"
 #include "thirdparty/misc/base64.h"
 #include "thirdparty/misc/md5.h"
 #include "thirdparty/misc/sha256.h"
@@ -2315,17 +2315,8 @@ String String::sha256_text() const {
 
 String String::encrypt_text(const String &p_key) const {
 
-	// Validate key
-	String cs = p_key.md5_text();
-
-	ERR_FAIL_COND_V(cs.length() != 32, String());
-
-	Vector<uint8_t> key;
-	key.resize(32);
-	for (int i = 0; i < 32; i++) {
-
-		key[i] = cs[i];
-	}
+	// Hash the key
+	Vector<uint8_t> key = p_key.md5_buffer();
 
 	// Prepare buffer
 	const CharType *clear_str = c_str();
@@ -2345,15 +2336,11 @@ String String::encrypt_text(const String &p_key) const {
 		encrypted_buf[i] = ((uint8_t *)clear_str)[i];
 	}
 
-	aes256_context ctx;
-	aes256_init(&ctx, key.ptr());
-
-	for (size_t i = 0; i < len; i += 16) {
-
-		aes256_encrypt_ecb(&ctx, &encrypted_buf[i]);
-	}
-
-	aes256_done(&ctx);
+	// Encrypt
+	des_context ctx;
+	des_setup(&ctx, key.ptr());
+	for (size_t i = 0; i < len; i += 8)
+		des_process(&ctx, true, &encrypted_buf[i], &encrypted_buf[i]);
 
 	// Preparing encrypted buffer encoded in base64
 	len = encrypted_buf.size();
@@ -2372,17 +2359,8 @@ String String::encrypt_text(const String &p_key) const {
 
 String String::decrypt_text(const String &p_key) const {
 
-	// Validate key
-	String cs = p_key.md5_text();
-
-	ERR_FAIL_COND_V(cs.length() != 32, String());
-
-	Vector<uint8_t> key;
-	key.resize(32);
-	for (int i = 0; i < 32; i++) {
-
-		key[i] = cs[i];
-	}
+	// Hash the key
+	Vector<uint8_t> key = p_key.md5_buffer();
 
 	// Prepare buffer, base64 to raw array
 	size_t strlen = length();
@@ -2397,15 +2375,11 @@ String String::decrypt_text(const String &p_key) const {
 	};
 	decrypted_buf.resize(len);
 
-	aes256_context ctx;
-	aes256_init(&ctx, key.ptr());
-
-	for (size_t i = 0; i < len; i += 16) {
-
-		aes256_decrypt_ecb(&ctx, &decrypted_buf[i]);
-	}
-
-	aes256_done(&ctx);
+	// Decrypt
+	des_context ctx;
+	des_setup(&ctx, key.ptr());
+	for (size_t i = 0; i < len; i += 8)
+		des_process(&ctx, false, &decrypted_buf[i], &decrypted_buf[i]);
 
 	// decrypted_buf is originally stored using unsigned short, this is
 	// why we are casting it to CharType
