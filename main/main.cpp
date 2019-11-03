@@ -28,6 +28,7 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                */
 /*************************************************************************/
 #include "main.h"
+#include "fantocci.h"
 #include "core/register_core_types.h"
 #include "drivers/register_driver_types.h"
 #include "globals.h"
@@ -975,6 +976,7 @@ Error Main::setup2(Thread::ID p_main_tid_override) {
 
 	register_module_types();
 	register_driver_types();
+	register_fantocci_types();
 
 	ScriptServer::init_languages();
 
@@ -1659,6 +1661,7 @@ void Main::cleanup() {
 	EditorNode::unregister_editor_types();
 #endif
 
+	unregister_fantocci_types();
 	unregister_driver_types();
 	unregister_module_types();
 	unregister_scene_types();

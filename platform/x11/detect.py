@@ -115,7 +115,9 @@ def configure(env):
 
     if (env["use_lto"] == "yes"):
         env.Append(CCFLAGS=['-flto=thin'])
-        env.Append(LINKFLAGS=['-fuse-ld=lld', '-flto=thin'])
+        env.Append(LINKFLAGS=['-flto=thin'])
+        if (env["buildlib"] != "yes"):
+            env.Append(LINKFLAGS=['-fuse-ld=lld'])
         env['AR'] = 'llvm-ar'
         env['RANLIB'] = 'llvm-ranlib'
 
@@ -237,6 +239,9 @@ def configure(env):
         env.Append(CPPFLAGS=['-DGLES_OVER_GL'])
         env.Append(LIBS=['GL'])
     env.Append(LIBS=['pthread'])
+
+    if (env['buildlib'] == 'yes'):
+        env.Append(CPPFLAGS=['-fPIC'])
 
     if (platform.system() == "Linux"):
         env.Append(LIBS=['dl'])

@@ -32,9 +32,10 @@
 #include <unistd.h>
 
 #include "main/main.h"
+#include "main/fantocci.h"
 #include "os_x11.h"
 
-int main(int argc, char *argv[]) {
+int fantocci_main(int argc, char *argv[]) {
 
 	OS_X11 os;
 
@@ -56,3 +57,9 @@ int main(int argc, char *argv[]) {
 
 	return os.get_exit_code();
 }
+
+#ifdef IMPLEMENT_MAIN
+int main(int argc, char *argv[]) {
+	return fantocci_main(argc, argv);
+}
+#endif

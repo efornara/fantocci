@@ -144,6 +144,8 @@ opts.Add('p', "Platform (alias for 'platform')", '')
 opts.Add('platform', "Target platform: any in " + str(platform_list), '')
 opts.Add('target', "Compilation target (debug/release_debug/release)", 'debug')
 opts.Add('tools', "Build the tools a.k.a. the Godot editor (yes/no)", 'yes')
+opts.Add('buildlib', "Build as shared library (yes/no)", 'no')
+opts.Add('extmain', "Main provided externally (yes/no)", 'no')
 
 # Components
 opts.Add('deprecated', "Enable deprecated features (yes/no)", 'yes')
