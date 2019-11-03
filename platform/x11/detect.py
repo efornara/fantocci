@@ -60,6 +60,7 @@ def get_opts():
         ('udev', 'Use udev for gamepad connection callbacks', 'no'),
         ('debug_release', 'Add debug symbols to release version', 'no'),
         ('touch', 'Enable touch events', 'yes'),
+        ('use_egles2', 'Use EGL / OpenGL ES 2.0', 'yes'),
     ]
 
 
@@ -85,7 +86,7 @@ def configure(env):
             env["CXX"] = "clang++"
             env["LD"] = "clang++"
         env.Append(CPPFLAGS=['-DTYPED_METHOD_BIND'])
-        env.extra_suffix = ".llvm"
+        env.extra_suffix += ".llvm"
     elif (os.system("gcc --version > /dev/null 2>&1") == 0): # GCC
         # Hack to prevent building this branch with GCC 6+, which trigger segfaults due to UB when dereferencing pointers in Object::cast_to
         # This is fixed in the master branch, for 2.1 we just prevent using too recent GCC versions.
@@ -113,8 +114,10 @@ def configure(env):
     #	env['LIBSUFFIX'] = ".nt"+env['LIBSUFFIX']
 
     if (env["use_lto"] == "yes"):
-        env.Append(CCFLAGS=['-flto'])
-        env.Append(LINKFLAGS=['-flto'])
+        env.Append(CCFLAGS=['-flto=thin'])
+        env.Append(LINKFLAGS=['-fuse-ld=lld', '-flto=thin'])
+        env['AR'] = 'llvm-ar'
+        env['RANLIB'] = 'llvm-ranlib'
 
 
     env.Append(CCFLAGS=['-pipe'])
@@ -226,8 +229,14 @@ def configure(env):
     if (env['builtin_zlib'] == 'no'):
         env.ParseConfig('pkg-config zlib --cflags --libs')
 
-    env.Append(CPPFLAGS=['-DX11_ENABLED', '-DUNIX_ENABLED', '-DGLES2_ENABLED', '-DGLES_OVER_GL'])
-    env.Append(LIBS=['GL', 'pthread'])
+    env.Append(CPPFLAGS=['-DX11_ENABLED', '-DUNIX_ENABLED', '-DGLES2_ENABLED'])
+    if (env['use_egles2'] == 'yes'):
+        env.Append(CPPFLAGS=['-DGLES_ENABLED'])
+        env.Append(LIBS=['EGL', 'GLESv2'])
+    else:
+        env.Append(CPPFLAGS=['-DGLES_OVER_GL'])
+        env.Append(LIBS=['GL'])
+    env.Append(LIBS=['pthread'])
 
     if (platform.system() == "Linux"):
         env.Append(LIBS=['dl'])

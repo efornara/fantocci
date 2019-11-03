@@ -5764,13 +5764,14 @@ EditorNode::EditorNode() {
 	update_menu = memnew(MenuButton);
 	update_menu->set_tooltip(TTR("Spins when the editor window repaints!"));
 	right_menu_hb->add_child(update_menu);
-	update_menu->set_icon(gui_base->get_icon("Progress1", "EditorIcons"));
+	update_menu->set_icon(gui_base->get_icon("Collapse", "EditorIcons"));
 	p = update_menu->get_popup();
 	p->add_check_item(TTR("Update Always"), SETTINGS_UPDATE_ALWAYS);
 	p->add_check_item(TTR("Update Changes"), SETTINGS_UPDATE_CHANGES);
 	p->add_separator();
 	p->add_check_item(TTR("Disable Update Spinner"), SETTINGS_UPDATE_SPINNER_HIDE);
 	p->set_item_checked(1, true);
+	p->set_item_checked(3, true);
 
 	//sources_button->connect();
 
@@ -6218,11 +6219,13 @@ EditorNode::EditorNode() {
 	add_editor_plugin(memnew(SpatialEditorPlugin(this)));
 	add_editor_plugin(memnew(ScriptEditorPlugin(this)));
 
+#if 0 /* Disabled by rpi-dev */
 	if (StreamPeerSSL::is_available()) {
 		add_editor_plugin(memnew(AssetLibraryEditorPlugin(this)));
 	} else {
 		WARN_PRINT("Asset Library not available, as it requires SSL to work.");
 	}
+#endif
 	//more visually meaningful to have this later
 	raise_bottom_panel_item(AnimationPlayerEditor::singleton);
 
