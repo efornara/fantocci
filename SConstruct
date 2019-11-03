@@ -323,7 +323,7 @@ if selected_platform in platform_list:
 
     #env['platform_libsuffix'] = env['LIBSUFFIX']
 
-    suffix = "." + selected_platform
+    suffix = ""
 
     if (env["target"] == "release"):
         if (env["tools"] == "yes"):
@@ -342,15 +342,6 @@ if selected_platform in platform_list:
             suffix += ".tools"
         else:
             suffix += ".debug"
-
-    if env["arch"] != "":
-        suffix += "." + env["arch"]
-    elif (env["bits"] == "32"):
-        suffix += ".32"
-    elif (env["bits"] == "64"):
-        suffix += ".64"
-    elif (env["bits"] == "fat"):
-        suffix += ".fat"
 
     suffix += env.extra_suffix
 
