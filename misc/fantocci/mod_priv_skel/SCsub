@@ -1,0 +1,11 @@
+#! /usr/bin/env python
+
+Import('env')
+Import('env_modules')
+
+env_private = env_modules.Clone()
+if env['buildlib'] == 'no':
+	env_private.Append(CPPFLAGS=['-DPRIVATE_BUILTIN'])
+	#env_private.Append(CPPPATH=[?])
+	#env_private.add_source_files(env.modules_sources, ?)
+env_private.add_source_files(env.modules_sources, "*.cpp")
