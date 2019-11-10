@@ -156,6 +156,8 @@ class SceneTreeDock : public VBoxContainer {
 
 	void _file_selected(String p_file);
 
+	String _new_node_name(String p_type);
+
 protected:
 	void _notification(int p_what);
 	static void _bind_methods();

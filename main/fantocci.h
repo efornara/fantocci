@@ -39,3 +39,9 @@ extern fantocci_unregister_types_fn *fantocci_unregister_types_array;
 // implemented by platform
 
 extern int fantocci_main(int argc, char *argv[]);
+
+// editor
+
+#ifdef TOOLS_ENABLED
+extern const char *fantocci_types_prefix;
+#endif

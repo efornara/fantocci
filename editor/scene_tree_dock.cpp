@@ -41,6 +41,7 @@
 #include "scene/main/viewport.h"
 #include "scene/resources/packed_scene.h"
 #include "script_editor_debugger.h"
+#include "main/fantocci.h"
 
 void SceneTreeDock::_unhandled_key_input(InputEvent p_event) {
 
@@ -1285,6 +1286,45 @@ void SceneTreeDock::_selection_changed() {
 	//tool_buttons[TOOL_MULTI_EDIT]->set_disabled(EditorNode::get_singleton()->get_editor_selection()->get_selection().size()<2);
 }
 
+String SceneTreeDock::_new_node_name(String p_type) {
+
+	static const char *abbreviations[][2] = {
+		{ "Animation", "anim" },
+		{ "Body", "body" },
+		{ "Shape", "shape" },
+		{ "Sprite", "sprite" },
+		{ 0, 0 }
+	};
+
+	if (EditorSettings::get_singleton()->get("scenetree_editor/new_node_naming_style").operator int() == 1 /* Godot */)
+		return p_type;
+
+	String s = p_type;
+
+	// check for abbreviations
+	CharString type = s.ascii();
+	for (int i = 0; abbreviations[i][0]; i++) {
+		if (strstr(type.get_data(), abbreviations[i][0])) {
+			s = abbreviations[i][1];
+			return s;
+		}
+	}
+
+	// if defined, remove private prefix
+	if (fantocci_types_prefix && s.begins_with(fantocci_types_prefix)) {
+		int n = strlen(fantocci_types_prefix);
+		s = s.substr(n, s.length() - n);
+	}
+
+	// remove trailing 2D / 3D
+	if (s.ends_with("2D") || s.ends_with("3D"))
+		s = s.substr(0, s.length() - 2);
+
+	// use underscore
+	s = s.camelcase_to_underscore();
+	return s;
+}
+
 void SceneTreeDock::_create() {
 
 	if (current_option == TOOL_NEW) {
@@ -1308,6 +1348,7 @@ void SceneTreeDock::_create() {
 		ERR_FAIL_COND(!c);
 		Node *child = c->cast_to<Node>();
 		ERR_FAIL_COND(!child);
+		child->set_name(_new_node_name(child->get_type()));
 
 		editor_data->get_undo_redo().create_action(TTR("Create Node"));
 
@@ -1320,7 +1361,7 @@ void SceneTreeDock::_create() {
 			editor_data->get_undo_redo().add_do_reference(child);
 			editor_data->get_undo_redo().add_undo_method(parent, "remove_child", child);
 
-			String new_name = parent->validate_child_name(child->get_type());
+			String new_name = parent->validate_child_name(child->get_name());
 			ScriptEditorDebugger *sed = ScriptEditor::get_singleton()->get_debugger();
 			editor_data->get_undo_redo().add_do_method(sed, "live_debug_create_node", edited_scene->get_path_to(parent), child->get_type(), new_name);
 			editor_data->get_undo_redo().add_undo_method(sed, "live_debug_remove_node", NodePath(String(edited_scene->get_path_to(parent)) + "/" + new_name));

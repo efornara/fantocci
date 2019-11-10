@@ -45,3 +45,7 @@ void unregister_fantocci_types() {
 		f();
 	}
 }
+
+#ifdef TOOLS_ENABLED
+const char *fantocci_types_prefix = 0;
+#endif

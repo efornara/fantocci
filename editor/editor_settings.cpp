@@ -566,6 +566,8 @@ void EditorSettings::_load_defaults(Ref<ConfigFile> p_extra_config) {
 	set("scenetree_editor/start_create_dialog_fully_expanded", false);
 	set("scenetree_editor/draw_relationship_lines", false);
 	set("scenetree_editor/relationship_line_color", Color::html("464646"));
+	set("scenetree_editor/new_node_naming_style", 0);
+	hints["scenetree_editor/new_node_naming_style"] = PropertyInfo(Variant::INT, "scenetree_editor/new_node_naming_style", PROPERTY_HINT_ENUM, "Fantocci,Godot");
 
 	set("grid_map/pick_distance", 5000.0);
 
