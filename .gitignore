@@ -10,7 +10,7 @@ doc/classes/
 platform/frt/
 
 # Private files
-private/
+private
 
 # Javascript specific
 *.bc
