@@ -620,12 +620,12 @@ void EditorSettings::_load_defaults(Ref<ConfigFile> p_extra_config) {
 	set("text_editor/create_signal_callbacks", true);
 
 	set("file_dialog/show_hidden_files", false);
-	set("file_dialog/display_mode", 0);
+	set("file_dialog/display_mode", 1);
 	hints["file_dialog/display_mode"] = PropertyInfo(Variant::INT, "file_dialog/display_mode", PROPERTY_HINT_ENUM, "Thumbnails,List");
 	set("file_dialog/thumbnail_size", 64);
 	hints["file_dialog/thumbnail_size"] = PropertyInfo(Variant::INT, "file_dialog/thumbnail_size", PROPERTY_HINT_RANGE, "32,128,16");
 
-	set("filesystem_dock/display_mode", 0);
+	set("filesystem_dock/display_mode", 1);
 	hints["filesystem_dock/display_mode"] = PropertyInfo(Variant::INT, "filesystem_dock/display_mode", PROPERTY_HINT_ENUM, "Thumbnails,List");
 	set("filesystem_dock/thumbnail_size", 64);
 	hints["filesystem_dock/thumbnail_size"] = PropertyInfo(Variant::INT, "filesystem_dock/thumbnail_size", PROPERTY_HINT_RANGE, "32,128,16");
